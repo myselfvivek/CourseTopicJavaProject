@@ -1,15 +1,15 @@
-package org.example.courseapidata.topic.exception;
+package org.example.courseapidata.course.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(value = HttpStatus.CONFLICT)
-public class TopicAlreadyExist extends RuntimeException{
+public class CourseAlreadyExistException extends RuntimeException{
     private String message;
-    public TopicAlreadyExist(String message)
+    public CourseAlreadyExistException(String message)
     {
         super(message);
         this.message = message;
     }
-    public TopicAlreadyExist(){}
+    public CourseAlreadyExistException(){}
 }

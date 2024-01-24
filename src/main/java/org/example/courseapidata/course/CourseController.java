@@ -1,43 +1,53 @@
 package org.example.courseapidata.course;
 
 import org.example.courseapidata.topic.Topic;
+import org.example.courseapidata.topic.TopicService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 public class CourseController {
 
     @Autowired
     private CourseService courseService;
-    @RequestMapping("/topics/{id}/courses")
-    public List<Course> getAllCourses(@PathVariable String id){
+
+
+    @GetMapping("/topics/{id}/courses")
+    @Cacheable(value = "topics", key = "#id")
+    public List<Course> getAllCourses(@PathVariable UUID id){
 
         return courseService.getAllCourses(id);
     }
-    @RequestMapping("/topics/{topicId}/courses/{id}")
-    public Course getCourse(@PathVariable String id, @PathVariable String topicId){
+    @GetMapping("/topics/{topicId}/courses/{id}")
+    @Cacheable(value = "courses", key = "#id")
+    public Course getCourse(@PathVariable UUID id, @PathVariable UUID topicId){
         return courseService.getCourse(id, topicId);
     }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/topics/{topicId}/courses")
-    public void addCourse(@RequestBody Course course, @PathVariable String topicId)
+    @PostMapping( "/topics/{topicId}/courses")
+    public void addCourse(@RequestBody Course course, @PathVariable UUID topicId)
     {
-         course.setTopic(new Topic(topicId, "", ""));
-        courseService.addCourse(course);
+        courseService.addCourse(course, topicId);
     }
 
-    @RequestMapping(method = RequestMethod.PUT, value = "/topics/{topicId}/courses/{id}")
-    public void updateCourse(@RequestBody Course course, @PathVariable String topicId, @PathVariable String id)
+    @PutMapping("/topics/{topicId}/courses/{id}")
+    @CachePut(value = "courses", key = "#id")
+    public void updateCourse(@RequestBody Course course, @PathVariable UUID topicId, @PathVariable UUID id)
     {
-        course.setTopic(new Topic(topicId, "", ""));
-        courseService.updateCourse(course);
+//        course.setTopic(new Topic(topicId, "", ""));
+        courseService.updateCourse(course, topicId);
     }
 
-    @RequestMapping(method = RequestMethod.DELETE, value = "/topics/{topicId}/courses/{id}")
-    public void deleteTopic(@PathVariable String id)
+    @DeleteMapping("/topics/{topicId}/courses/{id}")
+    @CacheEvict(value = "courses", key = "#id", beforeInvocation = true)
+    public void deleteCourse(@PathVariable UUID id, @PathVariable UUID topicId)
     {
-        courseService.deleteCourse(id);
+        courseService.deleteCourse(id, topicId);
     }
 }

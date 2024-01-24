@@ -1,26 +1,39 @@
 package org.example.courseapidata.course;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import org.example.courseapidata.topic.Topic;
+import org.hibernate.annotations.GenericGenerator;
+
+import java.io.Serializable;
+import java.util.UUID;
 
 @Entity
 @Table
-public class Course {
+public class Course implements Serializable {
 
+    private static final long serialVersionUID = -33333333333L;
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "course_id", columnDefinition = "UUID", updatable = false, nullable = false)
+    private UUID id;
+    @Column(name = "course_name", updatable = true, nullable = false)
     private String name;
+    @Column(name = "course.discription", updatable = true, nullable = true)
     private String discription;
 
-    @ManyToOne
+    @ManyToOne(
+            cascade = CascadeType.ALL
+    )
+    @JoinColumn(
+            name = "topic_id",
+            referencedColumnName = "topic_id",
+            nullable = false
+    )
     private Topic topic;
     public Course(){
 
     }
-    public Course(String id, String name, String description, String topicId) {
+    public Course(UUID id, String name, String description, UUID topicId) {
         super();
         this.id = id;
         this.name = name;
@@ -28,11 +41,11 @@ public class Course {
         this.topic = new Topic(topicId, "", "");
     }
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

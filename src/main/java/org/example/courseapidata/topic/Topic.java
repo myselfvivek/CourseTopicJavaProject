@@ -1,33 +1,44 @@
 package org.example.courseapidata.topic;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+
+import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
+
+
+import java.io.Serializable;
+import java.util.UUID;
 
 @Entity
 @Table
-public class Topic {
+public class Topic implements Serializable {
+
+    private static final long serialVersionUID = -33333333333L;
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "topic_id", columnDefinition = "UUID", updatable = false, nullable = false)
+    private UUID id;
+
+    @Column(name = "topic_name", updatable = true, nullable = false)
     private String name;
+    @Column(name = "topic_discription", updatable = true, nullable = true)
     private String discription;
 
     public Topic(){
 
     }
-    public Topic(String id, String name, String discription) {
+    public Topic(UUID id, String name, String discription) {
         super();
         this.id = id;
         this.name = name;
         this.discription = discription;
     }
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

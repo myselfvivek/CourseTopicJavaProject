@@ -1,10 +1,17 @@
 package org.example.courseapidata.course;
 
+import org.example.courseapidata.course.exception.CourseAlreadyExistException;
+import org.example.courseapidata.course.exception.CourseNotFoundException;
+import org.example.courseapidata.topic.Topic;
+import org.example.courseapidata.topic.TopicRepository;
+import org.example.courseapidata.topic.TopicService;
+import org.example.courseapidata.topic.exception.TopicNotFound;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 //import java.util.Optional;
 
 @Service
@@ -12,53 +19,97 @@ public class CourseService {
 
     @Autowired
     private CourseRepository courseRepository;
-//    it makes singlton object
-//    private List<Topic> topics = new ArrayList<>(Arrays.asList(
-//            new Topic("Java", "Java Spring", "It is java spring boot."),
-//            new Topic("Javascript", "Java Script here", "It is a java script.")
-//    ));
 
-    public List<Course> getAllCourses(String topicId)
+    @Autowired
+    private TopicRepository topicRepository;
+
+    public List<Course> getAllCourses(UUID topicId)
     {
+        Topic topic = topicRepository.findById(topicId).orElse(null);
+//        System.out.println(topic);
+        if(topic == null)
+        {
+            throw new TopicNotFound("topic not found.");
+        }
+
         List<Course> courses = new ArrayList<>();
         courseRepository.findByTopicId(topicId).forEach(courses::add);
+
+//        if(courses.isEmpty())
+//        {
+//            throw new CourseNotFoundException("Course does not exist.");
+//        }
+
         return courses;
     }
-    public Course getCourse(String id, String topicId)
+    public Course getCourse(UUID id, UUID topicId)
     {
-//        return topics.stream().filter(t -> t.getId().equals(id)).findFirst().get();
-//        ArrayList<Course> courses = new ArrayList<>();
-//        courseRepository.findByTopicId(topicId).forEach(courses::add);
-//        for(int i = 0; i < courses.size(); i++)
-//        {
-//            if(courses.get(i).getId().equals(id)) return courses.get(i);
-//        }
-//        return null;
-//
-        return courseRepository.findByTopicId(topicId).stream().filter(t -> t.getId().equals(id)).findFirst().get();
+        Topic topic = topicRepository.findById(topicId).orElse(null);
+        if(topic == null)
+        {
+            throw new TopicNotFound("topic not found.");
+        }
+
+        List<Course> courses = new ArrayList<>();
+        courseRepository.findByTopicId(topicId).forEach(course -> {
+            if (course.getId().equals(id)) {
+                courses.add(course);
+            }
+        });
+
+        if (courses.isEmpty()) {
+            throw new CourseNotFoundException("Course Not Exist.");
+        }
+
+        return courses.get(0);
     }
 
-    public void addCourse(Course course) {
+    public Course addCourse(Course course, UUID topicId) {
 //        topics.add(topic);
-        courseRepository.save(course);
-    }
-
-    public void updateCourse(Course course) {
-
-//        for(int i = 0; i < topics.size(); i++)
+//        if(courseRepository.existsById(course.getId()))
 //        {
-//            if(topics.get(i).getId().equals(id))
-//            {
-//                topics.set(i, topic);
-//                return;
-//            }
+//            throw new CourseAlreadyExistException("Course Already Exists.");
 //        }
+        Topic topic = topicRepository.findById(topicId).orElse(null);
+        System.out.println(topic);
+        if(topic == null)
+        {
+            throw new TopicNotFound("topic not found.");
+        }
 
+        course.setTopic(topic);
+        Course savedCourse = courseRepository.save(course);
+        return savedCourse;
+    }
+
+    public void updateCourse(Course course, UUID topicId) {
+
+        Topic topic = topicRepository.findById(topicId).orElse(null);
+        if(topic == null)
+        {
+            throw new TopicNotFound("topic doesn't exist.");
+        }
+        course.setTopic(topic);
         courseRepository.save(course);
     }
 
-    public void deleteCourse(String id) {
+    public void deleteCourse(UUID id, UUID topicId) {
 
-        courseRepository.deleteById(id);
+        Topic topic = topicRepository.findById(topicId).orElse(null);
+        if(topic == null)
+        {
+            throw new TopicNotFound("topic doesn't exist.");
+        }
+        List<Course> courses = new ArrayList<>();
+        courseRepository.findByTopicId(topicId).forEach(course -> {
+            if (course.getId().equals(id)) {
+                courses.add(course);
+            }
+        });
+
+        if (courses.isEmpty()) {
+            throw new CourseNotFoundException("Course Not Exist.");
+        }
+        courseRepository.deleteById(courses.get(0).getId());
     }
 }
